@@ -12,8 +12,8 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _auth = FirebaseAuth.instance;
-  String email = '';
-  String password = '';
+  String? email;
+  String? password;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +65,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               onPressed: () async {
                 try {
                   final newUser = await _auth.createUserWithEmailAndPassword(
-                      email: email, password: password);
+                      email: email.toString(), password: password.toString());
                   if (newUser != null) {
                     Navigator.pushNamed(context, ChatScreen.id);
                   }
