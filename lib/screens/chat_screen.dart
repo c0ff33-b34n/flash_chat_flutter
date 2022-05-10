@@ -11,12 +11,12 @@ class ChatScreen extends StatefulWidget {
 }
 
 final _firestore = FirebaseFirestore.instance;
+User? loggedInUser;
 const String messagesCollection = 'messages';
 
 class _ChatScreenState extends State<ChatScreen> {
   final messageTextController = TextEditingController();
   final _auth = FirebaseAuth.instance;
-  User? loggedInUser;
   String? messageText;
 
   @override
@@ -136,8 +136,15 @@ class MessageStream extends StatelessWidget {
           for (var message in messages) {
             final messageText = message.get('text');
             final messageSender = message.get('sender');
-            final messageBubble =
-                MessageBubble(sender: messageSender, text: messageText);
+            bool currentUser = false;
+            if (loggedInUser != null && loggedInUser?.email == messageSender) {
+              currentUser = true;
+            }
+            final messageBubble = MessageBubble(
+              sender: messageSender,
+              text: messageText,
+              isLoggedInUser: currentUser,
+            );
             messageBubbles.add(messageBubble);
           }
         }
@@ -153,25 +160,38 @@ class MessageStream extends StatelessWidget {
 }
 
 class MessageBubble extends StatelessWidget {
-  MessageBubble({required this.sender, required this.text});
+  MessageBubble(
+      {required this.sender, required this.text, required this.isLoggedInUser});
 
   final String sender;
   final String text;
+  final bool isLoggedInUser;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(10.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment:
+            isLoggedInUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Text(
             sender,
             style: TextStyle(fontSize: 12.0, color: Colors.black54),
           ),
           Material(
-            borderRadius: BorderRadius.circular(30.0),
-            color: Colors.lightBlueAccent,
+            borderRadius: isLoggedInUser
+                ? BorderRadius.only(
+                    topLeft: Radius.circular(30.0),
+                    bottomLeft: Radius.circular(30.0),
+                    bottomRight: Radius.circular(30.0),
+                  )
+                : BorderRadius.only(
+                    topRight: Radius.circular(30.0),
+                    bottomLeft: Radius.circular(30.0),
+                    bottomRight: Radius.circular(30.0),
+                  ),
+            color: isLoggedInUser ? Colors.greenAccent : Colors.lightBlueAccent,
             elevation: 5.0,
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
