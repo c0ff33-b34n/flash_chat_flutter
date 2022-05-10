@@ -11,13 +11,13 @@ class ChatScreen extends StatefulWidget {
 }
 
 final _firestore = FirebaseFirestore.instance;
+const String messagesCollection = 'messages';
 
 class _ChatScreenState extends State<ChatScreen> {
-
+  final messageTextController = TextEditingController();
   final _auth = FirebaseAuth.instance;
   User? loggedInUser;
   String? messageText;
-  String messagesCollection = 'messages';
 
   @override
   void initState() {
@@ -82,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
+                      controller: messageTextController,
                       onChanged: (value) {
                         messageText = value;
                       },
@@ -90,11 +91,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   FlatButton(
                     onPressed: () {
-                      if (loggedInUser?.email != null) {
+                      if (loggedInUser?.email != null &&
+                          messageText != null &&
+                          messageText!.length > 0) {
                         _firestore.collection(messagesCollection).add({
                           'text': messageText,
                           'sender': loggedInUser?.email.toString()
                         });
+                        messageTextController.clear();
+                        messageText = '';
                       }
                     },
                     child: Text(
@@ -113,7 +118,6 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class MessageStream extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -133,19 +137,18 @@ class MessageStream extends StatelessWidget {
             final messageText = message.get('text');
             final messageSender = message.get('sender');
             final messageBubble =
-            MessageBubble(sender: messageSender, text: messageText);
+                MessageBubble(sender: messageSender, text: messageText);
             messageBubbles.add(messageBubble);
           }
         }
         return Expanded(
           child: ListView(
-            padding:
-            EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
+            padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
             children: messageBubbles,
           ),
         );
       },
-    ),;
+    );
   }
 }
 
